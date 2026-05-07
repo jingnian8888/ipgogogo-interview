@@ -4,7 +4,6 @@ export default async function handler(req, res) {
     const redisUrl = process.env.KV_REST_API_URL;
     const token = process.env.KV_REST_API_TOKEN;
 
-    // 获取所有ID
     const listRes = await fetch(`${redisUrl}/lrange/interview:list/0/-1`, {
       headers: { Authorization: `Bearer ${token}` }
     });
@@ -13,7 +12,6 @@ export default async function handler(req, res) {
 
     if (ids.length === 0) return res.status(200).json([]);
 
-    // 获取每条记录
     const items = await Promise.all(ids.map(async id => {
       const r = await fetch(`${redisUrl}/get/interview:${id}`, {
         headers: { Authorization: `Bearer ${token}` }
@@ -21,8 +19,9 @@ export default async function handler(req, res) {
       const d = await r.json();
       if (!d.result) return null;
       try {
-        // result 可能是字符串或已解析的对象
-        return typeof d.result === 'string' ? JSON.parse(d.result) : d.result;
+        // result 是数组，取第一个元素再解析
+        const raw = Array.isArray(d.result) ? d.result[0] : d.result;
+        return typeof raw === 'string' ? JSON.parse(raw) : raw;
       } catch {
         return null;
       }
