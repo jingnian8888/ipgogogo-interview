@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>访谈结果</title>
+<style>
+  body { font-family: -apple-system, sans-serif; background: #f5f5f0; padding: 24px; max-width: 800px; margin: 0 auto; }
+  h1 { font-size: 18px; margin-bottom: 16px; }
+  .card { background: #fff; border-radius: 12px; border: 1px solid #e8e8e4; padding: 20px; margin-bottom: 16px; }
+  .time { font-size: 12px; color: #888; margin-bottom: 8px; }
+  .summary { font-size: 14px; color: #333; margin-bottom: 12px; background: #f9f9f7; padding: 10px; border-radius: 8px; white-space: pre-wrap; }
+  .toggle { font-size: 13px; color: #1D9E75; cursor: pointer; border: none; background: none; padding: 0; }
+  .conv { font-size: 13px; color: #555; line-height: 1.8; margin-top: 10px; white-space: pre-wrap; display: none; border-top: 1px solid #eee; padding-top: 10px; }
+  .empty { color: #888; text-align: center; margin-top: 40px; }
+</style>
+</head>
+<body>
+<h1>📋 访谈结果</h1>
+<div id="list">加载中...</div>
+<script>
+async function load() {
+  const res = await fetch('/api/results');
+  const data = await res.json();
+  if (!data.length) {
+    document.getElementById('list').innerHTML = '<div class="empty">暂无访谈记录</div>';
+    return;
+  }
+  document.getElementById('list').innerHTML = data.map((item, i) => `
+    <div class="card">
+      <div class="time">🕐 ${item.time}</div>
+      <div class="summary">${item.summary || '无摘要'}</div>
+      <button class="toggle" onclick="toggle(${i})">展开完整对话 ▼</button>
+      <div class="conv" id="conv-${i}">${item.conversation}</div>
+    </div>
+  `).join('');
+}
+function toggle(i) {
+  const el = document.getElementById('conv-'+i);
+  el.style.display = el.style.display === 'none' ? 'block' : 'none';
+}
+load();
+</script>
+</body>
+</html>
