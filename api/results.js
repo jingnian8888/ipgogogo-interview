@@ -1,8 +1,8 @@
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   try {
-    const redisUrl = process.env.STORAGE_URL;
-    const token = process.env.STORAGE_TOKEN;
+const redisUrl = process.env.KV_REST_API_URL;
+const token = process.env.KV_REST_API_TOKEN;
 
     const listRes = await fetch(`${redisUrl}/lrange/interview:list/0/-1`, {
       headers: { Authorization: `Bearer ${token}` }
