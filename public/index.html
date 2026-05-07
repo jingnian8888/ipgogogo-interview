@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IPGOGOGO 体验访谈</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Hiragino Sans GB', sans-serif; background: #f5f5f0; min-height: 100vh; display: flex; justify-content: center; padding: 24px 16px; }
+  #app { width: 100%; max-width: 640px; }
+  .header { background: #fff; border-radius: 16px; padding: 20px 24px; margin-bottom: 12px; border: 1px solid #e8e8e4; }
+  .header-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+  .logo { font-size: 15px; font-weight: 600; color: #0a0a0a; display: flex; align-items: center; gap: 6px; }
+  .logo-dot { width: 8px; height: 8px; border-radius: 50%; background: #1D9E75; }
+  .tag { font-size: 12px; color: #888; background: #f5f5f0; padding: 3px 10px; border-radius: 20px; }
+  .prog-bar { height: 4px; background: #ebebeb; border-radius: 2px; overflow: hidden; }
+  .prog-fill { height: 100%; background: #1D9E75; border-radius: 2px; transition: width 0.5s ease; width: 0%; }
+  .chat-area { background: #fff; border-radius: 16px; border: 1px solid #e8e8e4; padding: 20px; min-height: 420px; display: flex; flex-direction: column; gap: 16px; margin-bottom: 12px; max-height: 520px; overflow-y: auto; }
+  .msg { display: flex; flex-direction: column; gap: 4px; max-width: 86%; }
+  .msg.ai { align-self: flex-start; }
+  .msg.user { align-self: flex-end; }
+  .msg-name { font-size: 11px; color: #aaa; padding: 0 4px; }
+  .msg.user .msg-name { text-align: right; }
+  .bubble { padding: 12px 16px; border-radius: 18px; font-size: 14px; line-height: 1.7; }
+  .ai .bubble { background: #f5f5f0; color: #1a1a1a; border-bottom-left-radius: 4px; }
+  .user .bubble { background: #0F6E56; color: #fff; border-bottom-right-radius: 4px; }
+  .typing-bubble { padding: 12px 16px; background: #f5f5f0; border-radius: 18px; border-bottom-left-radius: 4px; display: flex; gap: 5px; align-items: center; width: fit-content; }
+  .dot { width: 6px; height: 6px; border-radius: 50%; background: #bbb; animation: blink 1.2s infinite; }
+  .dot:nth-child(2){animation-delay:.2s}.dot:nth-child(3){animation-delay:.4s}
+  @keyframes blink{0%,80%,100%{opacity:.2}40%{opacity:1}}
+  .input-card { background: #fff; border-radius: 16px; border: 1px solid #e8e8e4; padding: 16px; }
+  .input-card textarea { width: 100%; resize: none; border: 1px solid #e0e0e0; border-radius: 10px; padding: 10px 14px; font-size: 14px; font-family: inherit; background: #fafafa; color: #1a1a1a; line-height: 1.6; min-height: 52px; max-height: 120px; overflow-y: auto; outline: none; transition: border-color 0.2s; }
+  .input-card textarea:focus { border-color: #1D9E75; background: #fff; }
+  .input-footer { display: flex; align-items: center; justify-content: space-between; margin-top: 10px; }
+  .hint-text { font-size: 12px; color: #bbb; }
+  .send-btn { background: #1D9E75; color: #fff; border: none; border-radius: 10px; padding: 9px 20px; font-size: 14px; font-family: inherit; cursor: pointer; transition: background 0.15s; }
+  .send-btn:hover { background: #0F6E56; }
+  .send-btn:disabled { background: #ccc; cursor: not-allowed; }
+  .summary-card { background: #fff; border-radius: 16px; border: 1px solid #e8e8e4; padding: 20px 24px; margin-top: 12px; }
+  .sum-title { font-size: 15px; font-weight: 600; color: #1a1a1a; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+  .sum-title::before { content: ''; width: 4px; height: 18px; background: #1D9E75; border-radius: 2px; display: inline-block; }
+  .sum-item { display: flex; gap: 10px; margin-bottom: 12px; align-items: flex-start; padding: 12px; background: #f9f9f7; border-radius: 10px; }
+  .sum-icon { font-size: 16px; flex-shrink: 0; }
+  .sum-text { font-size: 13px; color: #333; line-height: 1.6; }
+  .restart-btn { margin-top: 16px; font-size: 13px; color: #1D9E75; border: 1px solid #a8ddc9; background: transparent; padding: 8px 18px; border-radius: 10px; cursor: pointer; font-family: inherit; }
+  .restart-btn:hover { background: #f0faf6; }
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="header">
+    <div class="header-top">
+      <div class="logo"><span class="logo-dot"></span>IPGOGOGO 体验访谈</div>
+      <span class="tag">约 3 分钟</span>
+    </div>
+    <div class="prog-bar"><div class="prog-fill" id="prog"></div></div>
+  </div>
+  <div class="chat-area" id="chat"></div>
+  <div class="input-card" id="input-card" style="display:none;">
+    <textarea id="inp" placeholder="请输入你的想法，AI 会根据你的回答追问…" rows="2"></textarea>
+    <div class="input-footer">
+      <span class="hint-text">Enter 发送 · Shift+Enter 换行</span>
+      <button class="send-btn" id="sbtn">发送 ↑</button>
+    </div>
+  </div>
+  <div id="result-area"></div>
+</div><script>
+const SYSTEM = `你是 IPGOGOGO 的用户研究访谈员，正在对刚完成9.9元体验的专利代理师进行深度访谈。
+
+【产品背景】IPGOGOGO 是一个 AI 辅助专利撰写工具，功能包括：AI 辅助撰写专利、形式审查、新创性审查、交底查新/优化、说明书扩写、审查意见 AI 答复。积分套餐：入门包¥99（400积分）、专业包¥399（1200积分）。
+
+【访谈目标】真正理解用户的付费决策动机，挖掘表层回答背后的真实原因。
+
+【访谈框架】分4个阶段自然推进：
+
+阶段1 - 使用情况：了解用了哪些功能，印象最深的是什么
+
+阶段2 - 满意度：问整体感受，追问具体细节
+- 满意 → "哪个地方最超出预期？"
+- 不满意 → "具体哪个功能，跟预期差在哪里？"
+
+阶段3 - 购买意向（核心）：
+- 先问"体验完有没有想过继续付费？"
+- 有意愿 → 问打算买哪个套餐，追问"什么让你觉得值"，问购买时间
+- 没意愿 → 问"最主要卡在哪里"，根据原因深挖：
+  * 价格 → "你心里觉得多少合适，按次付费还是套餐更适合你？"
+  * 效果 → "具体哪个功能，你手动改了多少比例的内容？"
+  * 暂无需求 → "大概什么时候会有案子，到时候还会想到我们吗？"
+  * 替代方案 → "你现在用什么，跟我们比最大差异是什么？"
+  * 信任/安全 → "主要担心哪方面，数据存储还是训练？"
+
+阶段4 - NPS + 开放反馈：0-10分推荐意愿，原因，最后收集建议
+
+【规则】
+- 每次只说一件事，2-3句话，不要出现选项列表
+- 语气像同行聊天，不像客服回访
+- 对有价值的回答先认同再追问，不要直接跳下一问题
+- 总计8-10轮对话后自然收尾，在最后回复末尾加 [DONE]
+- 不要提"问卷"、"积分"等词汇`;
+
+const chat = document.getElementById('chat');
+const inputCard = document.getElementById('input-card');
+const inp = document.getElementById('inp');
+const sbtn = document.getElementById('sbtn');
+let history = [], turns = 0, done = false;
+
+function setProgress(n) {
+  document.getElementById('prog').style.width = Math.min(Math.round(n/10*100),100)+'%';
+}
+function addBubble(role, text) {
+  const d = document.createElement('div');
+  d.className = 'msg '+role;
+  const clean = text.replace(/\[DONE\]/g,'').trim();
+  d.innerHTML = `<span class="msg-name">${role==='ai'?'访谈员':'你'}</span><div class="bubble">${clean.replace(/\n/g,'<br>')}</div>`;
+  chat.appendChild(d); chat.scrollTop = chat.scrollHeight;
+}
+function showTyping() {
+  const d = document.createElement('div');
+  d.className='msg ai'; d.id='typing';
+  d.innerHTML=`<span class="msg-name">访谈员</span><div class="typing-bubble"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>`;
+  chat.appendChild(d); chat.scrollTop=chat.scrollHeight;
+}
+function removeTyping() { const e=document.getElementById('typing'); if(e) e.remove(); }
+
+async function askAI(userMsg) {
+  history.push({role:'user', content:userMsg});
+  const res = await fetch('/api/chat', {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({model:'claude-sonnet-4-6', max_tokens:1000, system:SYSTEM, messages:history})
+  });
+  if (!res.ok) { const e=await res.json().catch(()=>({})); throw new Error(e.error||res.status); }
+  const data = await res.json();
+  const reply = data.content?.map(b=>b.text||'').join('')||'';
+  history.push({role:'assistant', content:reply});
+  return reply;
+}
+
+async function genSummary() {
+  const tx = history.map(m=>(m.role==='user'?'用户: ':'访谈员: ')+m.content).join('\n');
+  const res = await fetch('/api/chat', {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({model:'claude-sonnet-4-6', max_tokens:800, messages:[{role:'user',content:`请根据以下专利代理师访谈记录，提炼4条关键洞察，重点关注：购买意向、核心障碍、产品满意度、用户建议。每条一句话，用"-"开头，直接具体。\n\n${tx}`}]})
+  });
+  const data=await res.json();
+  return data.content?.map(b=>b.text||'').join('')||'';
+}
+
+function showSummary(text) {
+  const lines=text.split('\n').map(l=>l.replace(/^[-•]\s*/,'')).filter(l=>l);
+  const icons=['📊','🚧','💬','💡'];
+  let html=`<div class="summary-card"><div class="sum-title">本次访谈摘要</div>`;
+  lines.forEach((l,i)=>{ html+=`<div class="sum-item"><span class="sum-icon">${icons[i%icons.length]}</span><div class="sum-text">${l}</div></div>`; });
+  html+=`<button class="restart-btn" onclick="restart()">↺ 重新开始</button></div>`;
+  document.getElementById('result-area').innerHTML=html;
+}
+
+async function handleSend() {
+  const val=inp.value.trim();
+  if(!val||done) return;
+  inp.value=''; inp.style.height='auto';
+  sbtn.disabled=true; inputCard.style.display='none';
+  turns++; setProgress(turns);
+  addBubble('user',val); showTyping();
+  try {
+    const reply=await askAI(val);
+    removeTyping(); addBubble('ai',reply);
+    if(reply.includes('[DONE]')) {
+      done=true; setProgress(10);
+      showTyping();
+      const summary=await genSummary();
+      removeTyping(); showSummary(summary);
+    } else {
+      inputCard.style.display='block'; sbtn.disabled=false; inp.focus();
+    }
+  } catch(e) {
+    removeTyping();
+    addBubble('ai',`出了点问题（${e.message}），请稍后重试。`);
+    inputCard.style.display='block'; sbtn.disabled=false;
+  }
+}
+
+function restart() {
+  history=[]; turns=0; done=false;
+  chat.innerHTML=''; document.getElementById('result-area').innerHTML='';
+  setProgress(0); init();
+}
+
+function init() {
+  const opening='您好！感谢体验 IPGOGOGO，占用您几分钟聊聊感受。\n\n这次试用期间，您主要用了哪些功能？用完之后第一反应是什么？';
+  history.push({role:'assistant',content:opening});
+  addBubble('ai',opening);
+  inputCard.style.display='block'; inp.focus();
+}
+
+sbtn.addEventListener('click',handleSend);
+inp.addEventListener('keydown',e=>{ if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();handleSend();} });
+inp.addEventListener('input',()=>{ inp.style.height='auto'; inp.style.height=Math.min(inp.scrollHeight,120)+'px'; });
+init();
+</script>
+</body>
+</html>
