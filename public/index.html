@@ -147,6 +147,19 @@ async function genSummary() {
   return data.content?.map(b=>b.text||'').join('')||'';
 }
 
+async function saveToRedis(summary) {
+  const conversation = history.map(m =>
+    (m.role === 'user' ? '【用户】' : '【访谈员】') + m.content
+  ).join('\n\n');
+  try {
+    await fetch('/api/save', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ conversation, summary })
+    });
+  } catch(e) { console.error('保存失败', e); }
+}
+
 function showSummary(text) {
   const lines=text.split('\n').map(l=>l.replace(/^[-•]\s*/,'')).filter(l=>l);
   const icons=['📊','🚧','💬','💡'];
@@ -154,6 +167,7 @@ function showSummary(text) {
   lines.forEach((l,i)=>{ html+=`<div class="sum-item"><span class="sum-icon">${icons[i%icons.length]}</span><div class="sum-text">${l}</div></div>`; });
   html+=`<button class="restart-btn" onclick="restart()">↺ 重新开始</button></div>`;
   document.getElementById('result-area').innerHTML=html;
+  saveToRedis(text);
 }
 
 async function handleSend() {
