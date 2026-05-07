@@ -8,8 +8,8 @@ export default async function handler(req, res) {
     const { conversation, summary } = req.body;
     const id = Date.now().toString();
 
-    const redisUrl = process.env.STORAGE_URL;
-    const token = process.env.STORAGE_TOKEN;
+const redisUrl = process.env.KV_REST_API_URL;
+const token = process.env.KV_REST_API_TOKEN;
 
     await fetch(`${redisUrl}/set/interview:${id}`, {
       method: 'POST',
