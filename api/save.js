@@ -7,23 +7,26 @@ export default async function handler(req, res) {
   try {
     const { conversation, summary } = req.body;
     const id = Date.now().toString();
+    const redisUrl = process.env.KV_REST_API_URL;
+    const token = process.env.KV_REST_API_TOKEN;
 
-const redisUrl = process.env.KV_REST_API_URL;
-const token = process.env.KV_REST_API_TOKEN;
+    const data = JSON.stringify({ id, time: new Date().toLocaleString('zh-CN'), conversation, summary });
 
-    await fetch(`${redisUrl}/set/interview:${id}`, {
+    // 存储数据
+    const setRes = await fetch(`${redisUrl}/set/interview:${id}`, {
       method: 'POST',
       headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id, time: new Date().toLocaleString('zh-CN'), conversation, summary })
+      body: JSON.stringify([data])
     });
+    const setData = await setRes.json();
 
-    await fetch(`${redisUrl}/lpush/interview:list`, {
+    // 添加到列表
+    await fetch(`${redisUrl}/lpush/interview:list/${id}`, {
       method: 'POST',
-      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify([id])
+      headers: { Authorization: `Bearer ${token}` }
     });
 
-    return res.status(200).json({ success: true });
+    return res.status(200).json({ success: true, debug: setData });
   } catch (e) {
     return res.status(500).json({ error: e.message });
   }
