@@ -29,6 +29,7 @@ export default async function handler(req, res) {
           ? [{ role: 'system', content: system }, ...messages]
           : messages,
         max_tokens: 1000,
+        temperature: 0.5,
       }),
     });
 
