@@ -35,13 +35,16 @@ export default async function handler(req, res) {
     const data = await response.json();
 
     // 转换成 Anthropic 格式（兼容你的前端代码）
-    if (data.choices && data.choices[0]) {
-      return res.status(200).json({
-        content: [{ type: 'text', text: data.choices[0].message.content }]
-      });
-    } else {
-      return res.status(500).json({ error: data.error?.message || '未知错误' });
-    }
+    if (data.error) {
+  return res.status(503).json({ error: data.error.message || 'API服务繁忙，请稍后重试' });
+}
+if (data.choices && data.choices[0] && data.choices[0].message) {
+  return res.status(200).json({
+    content: [{ type: 'text', text: data.choices[0].message.content }]
+  });
+}
+return res.status(500).json({ error: '返回数据异常，请稍后重试' });
+    
   } catch (err) {
     return res.status(500).json({ error: err.message });
   }
