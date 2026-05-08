@@ -16,12 +16,16 @@ export default async function handler(req, res) {
     const setRes = await fetch(`${redisUrl}/set/interview:${id}`, {
       method: 'POST',
       headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify([data])
+     body: JSON.stringify(data)
     });
     const setData = await setRes.json();
 
     // 添加到列表
-    await fetch(`${redisUrl}/lpush/interview:list/${id}`, {
+    await fetch(`${redisUrl}/lpush/interview:list`, {
+  method: 'POST',
+  headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+  body: JSON.stringify([id])
+});
       method: 'POST',
       headers: { Authorization: `Bearer ${token}` }
     });
