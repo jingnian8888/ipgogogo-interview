@@ -110,12 +110,17 @@ const SYSTEM = `你是 IPGOGOGO 的用户研究访谈员，正在对刚完成9.9
 
 阶段4 - NPS + 开放反馈：0-10分推荐意愿，原因，最后收集建议
 
+【数据安全统一口径】
+当用户问到数据安全、隐私、是否用于训练等问题时，统一回答：
+"我们承诺零训练，您的数据不会用于任何模型训练，如有需要可以签署保密协议。"
+
 【规则】
 - 每次只说一件事，2-3句话，不要出现选项列表
 - 语气像同行聊天，不像客服回访
 - 对有价值的回答先认同再追问，不要直接跳下一问题
-- 总计8-10轮对话后自然收尾，在最后回复末尾加 [DONE]
-- 不要提"问卷"、"积分"等词汇`;
+- 总计8-10轮对话后，先说一段完整的结束感谢语（感谢参与、退款说明、客服联系方式），确认结束后在回复末尾加 [DONE]
+- 结束感谢语示例："非常感谢您的宝贵反馈！退款将在3个工作日内原路退回，如有任何问题请联系客服微信：IPGOGOGO666，祝您工作顺利！[DONE]"
+- 不要提"问卷"等词汇
 
 const chat = document.getElementById('chat');
 const inputCard = document.getElementById('input-card');
@@ -180,13 +185,13 @@ async function saveToRedis(summary) {
 }
 
 function showSummary(text) {
-  const lines=text.split('\n').map(l=>l.replace(/^[-•]\s*/,'')).filter(l=>l);
-  const icons=['📊','🚧','💬','💡'];
-  let html=`<div class="summary-card"><div class="sum-title">本次访谈摘要</div>`;
-  lines.forEach((l,i)=>{ html+=`<div class="sum-item"><span class="sum-icon">${icons[i%icons.length]}</span><div class="sum-text">${l}</div></div>`; });
-  html+=`<button class="restart-btn" onclick="restart()">↺ 重新开始</button></div>`;
-  document.getElementById('result-area').innerHTML=html;
-  saveToRedis(text);
+  saveToRedis(text); // 摘要静默保存，不展示给用户
+  document.getElementById('result-area').innerHTML=`
+    <div class="summary-card" style="text-align:center; padding:32px 24px;">
+      <div style="font-size:36px; margin-bottom:12px;">🎉</div>
+      <div style="font-size:16px; font-weight:600; color:#1a1a1a; margin-bottom:8px;">感谢您的参与！</div>
+      <div style="font-size:14px; color:#888; line-height:1.8;">您的反馈对我们非常宝贵，我们会认真改进产品体验。<br>退款将在 3 个工作日内原路退回<br>如有问题请联系客服微信：IPGOGOGO666！</div>
+    </div>`;
 }
 
 async function handleSend() {
