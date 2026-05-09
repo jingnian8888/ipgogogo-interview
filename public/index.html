@@ -356,7 +356,7 @@ function restart() {
 }
 
 function init() {
-  const opening='您好！感谢体验 IPGOGOGO，占用您几分钟聊聊感受。\n\n您这次主要用了哪些功能？用完之后第一反应是什么？';
+  const opening='您好！感谢体验 IPGOGOGO，占用您几分钟聊聊感受。\n\n您这次主要用了哪些功能？用完之后觉得效果怎么样，能帮助到你么？';
   history.push({role:'assistant',content:opening});
   addBubble('ai',opening);
   inputCard.style.display='block'; inp.focus();
